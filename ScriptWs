@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptWs App</title>
+    <style>
+        :root { --primary: #00e5ff; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+
+        /* Menu Lateral */
+        .sidebar { height: 100%; width: 0; position: fixed; z-index: 10; top: 0; left: 0; background: #111; overflow-x: hidden; transition: 0.4s; padding-top: 60px; border-right: 1px solid var(--primary); }
+        .sidebar a { padding: 15px 25px; text-decoration: none; font-size: 18px; color: #888; display: block; }
+        .sidebar a:hover { color: var(--primary); background: #1a1a1a; }
+        .sidebar .close-btn { position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer; }
+
+        /* Top Bar */
+        .header { background: #111; padding: 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; border-bottom: 1px solid #222; }
+        .header h1 { font-size: 18px; color: var(--primary); margin: 0; }
+        .search-box { background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: white; width: 50%; }
+
+        /* Conteúdo e Abas */
+        .container { padding: 20px; }
+        .section { display: none; }
+        .active { display: block; }
+
+        /* Cards */
+        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #222; }
+        .card h3 { margin-top: 0; color: var(--primary); }
+        
+        /* Caixas de Código */
+        .code-box { background: #000; padding: 15px; border-radius: 5px; border: 1px solid #333; font-family: 'Courier New', monospace; font-size: 12px; color: #00ff00; word-break: break-all; white-space: pre-wrap; margin: 10px 0; max-height: 300px; overflow-y: auto; }
+
+        /* Botões */
+        button { background: var(--primary); color: black; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
+        .btn-secondary { background: #333; color: white; margin-top: 10px; }
+
+        /* Inputs */
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0 15px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <div id="mySidebar" class="sidebar">
+        <span class="close-btn" onclick="closeNav()">×</span>
+        <a href="#" onclick="showSection('scripts')">📜 Scripts</a>
+        <a href="#" onclick="showSection('raw-tab')">🔗 Aba RAW</a>
+        <a href="#" onclick="showSection('loadstring')">⚡ Loadstring</a>
+        <a href="#" onclick="showSection('add')">➕ Postar Script</a>
+        <a href="#" onclick="showSection('sobre')">👤 Sobre</a>
+    </div>
+
+    <div class="header">
+        <button style="width:auto; background:none; color:white; font-size:24px;" onclick="openNav()">☰</button>
+        <h1>ScriptWs</h1>
+        <input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()">
+    </div>
+
+    <div class="container">
+        
+        <div id="scripts" class="section active">
+            <div id="list"></div>
+        </div>
+
+        <div id="raw-tab" class="section">
+            <h2 style="color:var(--primary)">Visualizador RAW</h2>
+            <p id="raw-info">Selecione um script para ver o código puro.</p>
+            <div id="raw-display"></div>
+        </div>
+
+        <div id="loadstring" class="section">
+            <h2 style="color:var(--primary)">Gerador Loadstring</h2>
+            <div id="load-display">
+                <p>Nenhum script selecionado.</p>
+            </div>
+        </div>
+
+        <div id="add" class="section">
+            <h2 style="color:var(--primary)">Postar no ScriptWs</h2>
+            <input type="text" id="nameInp" placeholder="Nome do Script">
+            <textarea id="descInp" placeholder="Descrição"></textarea>
+            <textarea id="codeInp" placeholder="Cole o código LUA aqui" rows="5"></textarea>
+            <button onclick="postar()">POSTAR AGORA</button>
+        </div>
+
+        <div id="sobre" class="section">
+            <div class="card" style="text-align:center">
+                <h1 style="color:var(--primary)">ScriptWs</h1>
+                <p><b>Dono:</b> Zerin</p>
+                <p><b>Desenvolvedor:</b> Dev Davi</p>
+                <p style="font-size:12px; color:#555;">ID: 10193414442</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openNav() { document.getElementById("mySidebar").style.width = "250px"; }
+        function closeNav() { document.getElementById("mySidebar").style.width = "0"; }
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            closeNav();
+        }
+
+        let db = JSON.parse(localStorage.getItem('scriptws_db')) || [];
+
+        function postar() {
+            const name = document.getElementById('nameInp').value;
+            const desc = document.getElementById('descInp').value;
+            const code = document.getElementById('codeInp').value;
+            if(!name || !code) return alert("Preencha tudo!");
+
+            const rawLink = "http://ScriptWs/raw/" + name.replace(/\s+/g, '-').toLowerCase();
+            db.push({ name, desc, code, rawLink });
+            localStorage.setItem('scriptws_db', JSON.stringify(db));
+            alert("Postado!");
+            location.reload();
+        }
+
+        function render() {
+            const list = document.getElementById('list');
+            list.innerHTML = db.map((s, i) => `
+                <div class="card script-item">
+                    <h3>${s.name}</h3>
+                    <p>${s.desc}</p>
+                    <button onclick="verRaw(${i})">VER RAW</button>
+                    <button class="btn-secondary" onclick="verLoad(${i})">VER LOADSTRING</button>
+                </div>
+            `).join('') || '<p style="text-align:center">Nenhum script.</p>';
+        }
+
+        function verRaw(i) {
+            const s = db[i];
+            showSection('raw-tab');
+            document.getElementById('raw-info').innerText = "Caminho: " + s.rawLink;
+            document.getElementById('raw-display').innerHTML = `
+                <div class="code-box">${s.code}</div>
+                <button onclick="copy('${s.code}')">COPIAR CÓDIGO</button>
+            `;
+        }
+
+        function verLoad(i) {
+            const s = db[i];
+            const load = `loadstring(game:HttpGet("${s.rawLink}"))()`;
+            showSection('loadstring');
+            document.getElementById('load-display').innerHTML = `
+                <div class="card">
+                    <p>Use este comando no Delta:</p>
+                    <div class="code-box">${load}</div>
+                    <button onclick="copy('${load}')">COPIAR LOADSTRING</button>
+                </div>
+            `;
+        }
+
+        function copy(text) {
+            const t = document.createElement('textarea');
+            t.value = text;
+            document.body.appendChild(t);
+            t.select();
+            document.execCommand('copy');
+            document.body.removeChild(t);
+            alert("Copiado!");
+        }
+
+        function filter() {
+            let q = document.getElementById('search').value.toLowerCase();
+            document.querySelectorAll('.script-item').forEach(c => {
+                c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none";
+            });
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
