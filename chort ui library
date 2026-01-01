@@ -1,0 +1,89 @@
+-- [[ CHORT UI ]]
+local ChortLib = {}
+function ChortLib:CreateWindow(cfg)
+    local g = Instance.new("ScreenGui", game.CoreGui)
+    local m = Instance.new("Frame", g)
+    m.Size, m.Position, m.BackgroundColor3, m.Draggable, m.Active = UDim2.new(0,420,0,380), UDim2.new(0.5,-210,0.5,-190), Color3.fromRGB(15,15,15), true, true
+    Instance.new("UICorner", m).CornerRadius = UDim.new(0,10)
+
+    local t = Instance.new("TextLabel", m)
+    t.Text, t.Size, t.Position, t.TextColor3, t.Font, t.BackgroundTransparency = cfg.Name, UDim2.new(0,250,0,30), UDim2.new(0,15,0,12), Color3.new(1,1,1), "GothamBold", 1
+    t.TextXAlignment, t.TextSize = "Left", 18
+    
+    local s = Instance.new("TextLabel", m)
+    s.Text, s.Size, s.Position, s.TextColor3, s.Font, s.BackgroundTransparency = cfg.description, UDim2.new(0,250,0,20), UDim2.new(0,15,0,32), cfg.DescriptionColor, "Gotham", 1
+    s.TextXAlignment, s.TextSize = "Left", 13
+
+    local sc = Instance.new("ScrollingFrame", m)
+    sc.Size, sc.Position, sc.BackgroundTransparency, sc.ScrollBarThickness = UDim2.new(1,-20,1,-90), UDim2.new(0,10,0,80), 1, 2
+    local ly = Instance.new("UIListLayout", sc)
+    ly.Padding = UDim.new(0,7)
+    ly:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() sc.CanvasSize = UDim2.new(0,0,0,ly.AbsoluteContentSize.Y + 10) end)
+
+    local lib = {}
+    function lib:CreateTab(name) return lib end
+    
+    function lib:AddLabel(txt)
+        local l = Instance.new("TextLabel", sc)
+        l.Size, l.BackgroundTransparency, l.Text, l.TextColor3 = UDim2.new(1,-10,0,25), 1, txt, Color3.new(1,1,1)
+        l.Font, l.TextSize = "Gotham", 14
+    end
+
+    function lib:AddButton(txt, cb)
+        local b = Instance.new("TextButton", sc)
+        b.Size, b.BackgroundColor3, b.Text, b.TextColor3 = UDim2.new(1,-10,0,35), Color3.fromRGB(25,25,25), txt, Color3.new(1,1,1)
+        Instance.new("UICorner", b)
+        b.MouseButton1Click:Connect(cb)
+    end
+
+    -- FUNÇÃO SLIDER (ADICIONADA)
+    function lib:AddSlider(txt, max, cb)
+        local sld = Instance.new("TextButton", sc)
+        sld.Size, sld.BackgroundColor3, sld.Text, sld.TextColor3 = UDim2.new(1,-10,0,35), Color3.fromRGB(25,25,25), txt.." [Clique p/ Max: "..max.."]", Color3.new(1,1,1)
+        Instance.new("UICorner", sld)
+        sld.MouseButton1Click:Connect(function() cb(max) end)
+    end
+
+    -- FUNÇÃO DROPDOWN PLAYERS (ADICIONADA)
+    function lib:AddPlayerDropdown(txt, cb)
+        local drp = Instance.new("TextButton", sc)
+        drp.Size, drp.BackgroundColor3, drp.Text, drp.TextColor3 = UDim2.new(1,-10,0,35), Color3.fromRGB(25,25,25), txt..": Selecionar...", Color3.new(1,1,1)
+        Instance.new("UICorner", drp)
+        
+        drp.MouseButton1Click:Connect(function()
+            local players = game.Players:GetPlayers()
+            -- Lógica simples: clica e ele alterna entre os players do server
+            _G.PlayerIndex = (_G.PlayerIndex or 0) % #players + 1
+            local target = players[_G.PlayerIndex].Name
+            drp.Text = txt..": "..target
+            cb(target)
+        end)
+    end
+
+    function lib:AddToggle(txt, cb)
+        local on = false
+        local tg = Instance.new("TextButton", sc)
+        tg.Size, tg.BackgroundColor3, tg.Text, tg.TextColor3 = UDim2.new(1,-10,0,35), Color3.fromRGB(25,25,25), txt.." [OFF]", Color3.new(1,1,1)
+        Instance.new("UICorner", tg)
+        tg.MouseButton1Click:Connect(function()
+            on = not on
+            tg.Text = txt .. (on and " [ON]" or " [OFF]")
+            tg.BackgroundColor3 = on and Color3.fromRGB(0, 160, 80) or Color3.fromRGB(25, 25, 25)
+            cb(on)
+        end)
+    end
+
+    function lib:AddSocial(so)
+        local f = Instance.new("Frame", sc)
+        f.Size, f.BackgroundColor3 = UDim2.new(1,-10,0,45), Color3.fromRGB(25,25,25)
+        Instance.new("UICorner", f)
+        local l = Instance.new("TextLabel", f)
+        l.Text, l.Size, l.Position, l.BackgroundTransparency, l.TextColor3, l.TextXAlignment = so.Platform, UDim2.new(0.5,0,1,0), UDim2.new(0,12,0,0), 1, Color3.new(1,1,1), "Left"
+        local j = Instance.new("TextButton", f)
+        j.Text, j.Size, j.Position, j.BackgroundColor3, j.TextColor3 = "Join!", UDim2.new(0,75,0,28), UDim2.new(1,-85,0.5,-14), so.Color, Color3.new(1,1,1)
+        Instance.new("UICorner", j)
+        j.MouseButton1Click:Connect(function() setclipboard(so.Link) end)
+    end
+
+    return lib
+end
